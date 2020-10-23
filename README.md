@@ -47,9 +47,9 @@ Examples
    
         
 4. Other Query options
-Currently Helper only supports query on tables.  This needs to be extended for Indexes.  There are mutliple overloaded functions with ability to search with variety of options.
+    Currently Helper only supports query on tables.  This needs to be extended for Indexes.  There are mutliple overloaded functions with ability to search with    variety of options.
 
-Function examples :  Search for fakecustomer with partition_key = Test and sort key greater than 1
+  Function examples :  Search for fakecustomer with partition_key = Test and sort key greater than 1
 
  ```Java
         FakeCustomer mc1 = new FakeCustomer();
