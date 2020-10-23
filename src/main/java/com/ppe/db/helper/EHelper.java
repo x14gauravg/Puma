@@ -227,17 +227,17 @@ public class EHelper {
         final Map<String, AttributeValue> stringAttributeValueMap = table.tableSchema().itemToMap(obj, expressionList);
         Map<String, AttributeValue> expressionValueMap = new HashMap<>();
         stringAttributeValueMap.forEach((s, av) -> expressionValueMap.put(":" + s, av));
-//
-//        Expression expression = Expression.builder()
-//                .expression(conditionExpression)
-//                .expressionValues(expressionValueMap)
-//                .build();
 
         Expression expression = Expression.builder()
-                .expression("#key = :value")
-                .putExpressionName("#key", "fees")
-                .putExpressionValue(":value", AttributeValue.builder().n(((Integer) 100).toString()).build())
+                .expression(conditionExpression)
+                .expressionValues(expressionValueMap)
                 .build();
+
+//        Expression expression = Expression.builder()
+//                .expression("#key = :value")
+//                .putExpressionName("#key", "fees")
+//                .putExpressionValue(":value", AttributeValue.builder().n(((Integer) 100).toString()).build())
+//                .build();
 
         UpdateItemEnhancedRequest<T> update = UpdateItemEnhancedRequest.builder(clazz)
                 .ignoreNulls(true)
