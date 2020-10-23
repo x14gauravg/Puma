@@ -9,15 +9,19 @@ Examples
 
 1. Get Item 
 
+ ```Java
         FakeCustomer mc1 = new FakeCustomer();
         mc1.setPARTITION_KEY("Test");
         mc1.setSORT_KEY("1");
         
         FakeCustomer item2 = EHelper.getItem(mc1);
+  ```
         
 2. Put Item (Insert without Transaction)
 
+ ```Java
         EHelper.putItem(mc1 , FakeCustomer.class);
+ ```
 
 3. Transactions 
 
@@ -25,32 +29,35 @@ Examples
     -  Updates will work by getting object first and the update will overwrite previous fields.  The values which will be null in the object , will be ignored while updating and original values will be retained
     -  All objects must have an Integer field, which must be marked with annotation @DynamoDbVersionAttribue.  This attribute will be checked while updating.  If another process has updated the item, then your update will not be applied and transaction will fail.  You should have a retry mechanism with revised calculations
     
-          EHelper.TxnPacket packet = EHelper.TxnPacket.builder()
+ ```Java
+ 
+    // Both insert and update
+    // Create Transaction Packet
+      
+      EHelper.TxnPacket packet = EHelper.TxnPacket.builder()
       .update(mc1, FakeCustomer.class,null)
       .insert(mc2,FakeCustomer.class)
       .insert(mc3, FakeCustomer.class)
       .build();
-
-
-
-    // Both insert and update
-    // Create Transaction Packet
-
-            
+       
     // Execute Transaction
         EHelper.executeTransactionWrite(packet);
+     
+```
+   
         
 4. Other Query options
 Currently Helper only supports query on tables.  This needs to be extended for Indexes.  There are mutliple overloaded functions with ability to search with variety of options.
 
 Function examples :  Search for fakecustomer with partition_key = Test and sort key greater than 1
 
+ ```Java
         FakeCustomer mc1 = new FakeCustomer();
         mc1.setPARTITION_KEY("Test");
         mc1.setSORT_KEY("1");
         
         List<FakeCustomer> fakeCustomers = EHelper.querySortKeyGreaterThan(mc1, null, false);
-        
+  ```   
         
  5. Annotations on Model 
  
@@ -64,7 +71,7 @@ Function examples :  Search for fakecustomer with partition_key = Test and sort 
  * @DynamoDbIgnore :  Ignore field for update and insert
  
  
- 
+```Java
  
 @Data
 @ToString
@@ -125,7 +132,9 @@ public class FakeCustomer {
     public void setJunk(Integer junk) { this.junk = junk; }
 
 }
-        
+ ```
+ 
+ 
 
 
 
