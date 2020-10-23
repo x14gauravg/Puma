@@ -25,7 +25,7 @@ public class TestDynamo {
 
 
         EHelper.TxnPacket packet = EHelper.TxnPacket.builder()
-                .update(mc1, FakeCustomer.class, " fees = :fees ")
+                .update(mc1, FakeCustomer.class, null )
 //                .update(item1, FakeCustomer.class,null)
 //                .insert(mc1,FakeCustomer.class)
 //                .insert(mc2, FakeCustomer.class)
