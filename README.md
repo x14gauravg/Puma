@@ -27,7 +27,7 @@ Examples
 
     -  Inserts will check if partition and sort key already exists.  It will throw error and transaction will fail
     -  Updates will work by getting object first and the update will overwrite previous fields.  The values which will be null in the object , will be ignored while updating and original values will be retained
-    -  All objects must have an Integer field, which must be marked with annotation @DynamoDbVersionAttribue.  This attribute will be checked while updating.  If another process has updated the item, then your update will not be applied and transaction will fail.  You should have a retry mechanism with revised calculations
+    -  Optimistic Updates : All objects must have an Integer field, which must be marked with annotation @DynamoDbVersionAttribue.  This attribute will be checked while updating.  If another process has updated the item, then your update will not be applied and transaction will fail.  You should have a retry mechanism with revised calculations
     
  ```Java
  
