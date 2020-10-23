@@ -6,7 +6,6 @@ import lombok.Data;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
 @Data
-@DynamoDBDocument
 @DynamoDbBean
 public class FakePicture {
     private String frontView;
