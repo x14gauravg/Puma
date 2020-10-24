@@ -23,8 +23,7 @@ public class TestDynamo {
         mc2.setFees(100);
         mc2.setFakePicture(pix);
 
-        EHe
-
+        
 
         EHelper.TxnPacket packet = EHelper.TxnPacket.builder()
                 .update(mc1, FakeCustomer.class, null )
