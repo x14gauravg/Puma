@@ -1,6 +1,7 @@
 package com.ppe.db.helper;
 
 import software.amazon.awssdk.enhanced.dynamodb.*;
+import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
 import software.amazon.awssdk.enhanced.dynamodb.model.*;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -21,14 +22,16 @@ public class EHelper {
 
         DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
                 .dynamoDbClient(ddb)
+                .extensions(VersionedRecordExtension.builder().build())
                 .build();
 
         return enhancedClient;
     }
 
     public static <T> T getItem(T obj) {
-        final T t = queryTable(obj, null, false, k -> QueryConditional.keyEqualTo(k)).get(0);
-        return (t != null) ? t : null;
+        List<T> l = queryTable(obj, null, false, k -> QueryConditional.keyEqualTo(k));
+        T t = (l.size() == 0 ) ? null : l.get(0);
+        return t;
     }
 
     public static <T> List<T> querySortKeyBeginsWith(T obj, String filterExpression, boolean scanIndexForward) {
@@ -219,12 +222,15 @@ public class EHelper {
 
     }
 
+
+
     private static <T> void updateRequest(TransactWriteItemsEnhancedRequest.Builder builder, T obj, Class<T> clazz, String conditionExpression) {
 
         final DynamoDbTable<T> table = (DynamoDbTable<T>) getEnhancedClient().table(getDynamoDBTableName(obj), TableSchema.fromClass(obj.getClass()));
 
         final List<String> expressionList = getTokenFromExpression(conditionExpression);
-        final Map<String, AttributeValue> stringAttributeValueMap = table.tableSchema().itemToMap(obj, expressionList);
+        final Map<String, AttributeValue>  stringAttributeValueMap = table.tableSchema().itemToMap(obj, expressionList);
+
         Map<String, AttributeValue> expressionValueMap = new HashMap<>();
         stringAttributeValueMap.forEach((s, av) -> expressionValueMap.put(":" + s, av));
 
