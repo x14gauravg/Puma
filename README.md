@@ -1,8 +1,9 @@
 # DynamoDB Database Helper using Enhanced Client
 
-DynamoDB Database Helper - refer to package com.ppe.db.helper. Ignore other packages, those use code from Old DynamoDB CLient and DynamoMapper.  The "EHelper" class in package com.ppe.db.helper is the primary one with all functions for transactions, get, put and query.
+DynamoDB Database Helper - refer to package com.ppe.db.helper.  
+Ignore other packages because those packages use code from Old DynamoDB CLient and DynamoMapper.  The "EHelper" class in package com.ppe.db.helper is the primary one with all functions for transactions, get, put and query.
 
-I am using FakeCustomer class in the same package com.ppe.db.helper ,  which has few annotations.  Some of the annotations are from Enhanced Client Library.  There are few which i have custom included.  These annotations are also party of package com.ppe.db.helper package.
+I am using FakeCustomer class in the same package com.ppe.db.helper which has few annotations applied.  Some of these annotations are provided by Enhanced Client Library.  However, there are few which i have custom built.  These annotations are also part of package com.ppe.db.helper package.
 
 
 Examples 
@@ -69,6 +70,8 @@ Function examples :  Search for fakecustomer with partition_key = Test and sort 
  * @DynamoDbPartitionKey , @DynamoDbSortKey : method level. Provided by Enhanced Client. Used by Enhanced client for identification of primary key
  * @DynamoDbAttribute("Pictures") : method level. Provided by Enhanced Client. If dynamodb column name is different from object property name
  * @DynamoDbIgnore :  Ignore field for update and insert
+ * @DynamoDbUpdateBehavior(UpdateBehavior.WRITE_IF_NOT_EXISTS) :  Interesting update behaviour, to be used for created_date kind of option
+
  
  
 ```Java
