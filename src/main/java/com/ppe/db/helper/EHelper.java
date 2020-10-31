@@ -1,14 +1,16 @@
 package com.ppe.db.helper;
 
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.*;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 import software.amazon.awssdk.enhanced.dynamodb.model.*;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 
 import java.beans.Introspector;
 import java.lang.reflect.Field;
@@ -39,25 +41,138 @@ public class EHelper {
         return t;
     }
 
+    public static <T> List<T> getIndexItem(T obj, String indexName) {
+        List<T> l = queryIndex(indexName, obj, null, false, k -> QueryConditional.keyEqualTo(k));
+        return l;
+    }
+
+    public static <T> List<T> querySortKeyBeginsWith(T obj) {
+        return querySortKeyBeginsWith(obj,null, true);
+    }
+
+    public static <T> List<T> querySortKeyBeginsWith(T obj, String filterExpression) {
+        return querySortKeyBeginsWith(obj,filterExpression, true);
+    }
+
+
     public static <T> List<T> querySortKeyBeginsWith(T obj, String filterExpression, boolean scanIndexForward) {
         return queryTable(obj, filterExpression, scanIndexForward, k -> QueryConditional.sortBeginsWith(k));
     }
+
 
     public static <T> List<T> querySortKeyGreaterThan(T obj, String filterExpression, boolean scanIndexForward) {
         return queryTable(obj, filterExpression, scanIndexForward, k -> QueryConditional.sortGreaterThan(k));
     }
 
+    public static <T> List<T> querySortKeyGreaterThan(T obj) {
+        return querySortKeyGreaterThan(obj,null,true);
+    }
+
+    public static <T> List<T> querySortKeyGreaterThan(T obj, String filterExpression) {
+        return querySortKeyGreaterThan(obj,filterExpression,true);
+    }
+
+
     public static <T> List<T> querySortKeyLessThan(T obj, String filterExpression, boolean scanIndexForward) {
         return queryTable(obj, filterExpression, scanIndexForward, k -> QueryConditional.sortLessThan(k));
+    }
+
+    public static <T> List<T> querySortKeyLessThan(T obj) {
+        return querySortKeyLessThan(obj,null, true);
+    }
+
+    public static <T> List<T> querySortKeyLessThan(T obj, String filterExpression) {
+        return querySortKeyLessThan(obj,filterExpression, true);
     }
 
     public static <T> List<T> querySortKeyGreaterThanOrEqualTo(T obj, String filterExpression, boolean scanIndexForward) {
         return queryTable(obj, filterExpression, scanIndexForward, k -> QueryConditional.sortGreaterThanOrEqualTo(k));
     }
 
+    public static <T> List<T> querySortKeyGreaterThanOrEqualTo(T obj) {
+        return querySortKeyGreaterThanOrEqualTo(obj,null,true);
+    }
+
+    public static <T> List<T> querySortKeyGreaterThanOrEqualTo(T obj, String filterExpression) {
+        return querySortKeyGreaterThanOrEqualTo(obj,filterExpression,true);
+    }
+
+
     public static <T> List<T> querySortKeyLessThanOrEqualTo(T obj, String filterExpression, boolean scanIndexForward) {
         return queryTable(obj, filterExpression, scanIndexForward, k -> QueryConditional.sortLessThanOrEqualTo(k));
     }
+
+    public static <T> List<T> querySortKeyLessThanOrEqualTo(T obj) {
+        return querySortKeyLessThanOrEqualTo(obj,null,true);
+    }
+
+    public static <T> List<T> querySortKeyLessThanOrEqualTo(T obj, String filterExpression) {
+        return querySortKeyLessThanOrEqualTo(obj,filterExpression,true);
+    }
+
+    public static <T> List<T> queryIndexSortKeyBeginsWith(T obj, String indexName, String filterExpression, boolean scanIndexForward) {
+        return queryIndex(indexName, obj, filterExpression, scanIndexForward, k -> QueryConditional.sortBeginsWith(k));
+    }
+
+    public static <T> List<T> queryIndexSortKeyBeginsWith(T obj, String indexName) {
+        return queryIndexSortKeyBeginsWith(obj, indexName,null,true);
+    }
+
+    public static <T> List<T> queryIndexSortKeyBeginsWith(T obj, String indexName, String filterExpression) {
+        return queryIndexSortKeyBeginsWith(obj, indexName,filterExpression,true);
+    }
+
+
+    public static <T> List<T> queryIndexSortKeyGreaterThan(T obj, String indexName, String filterExpression, boolean scanIndexForward) {
+        return queryIndex(indexName, obj, filterExpression, scanIndexForward, k -> QueryConditional.sortGreaterThan(k));
+    }
+
+    public static <T> List<T> queryIndexSortKeyGreaterThan(T obj, String indexName) {
+        return queryIndexSortKeyGreaterThan(obj, indexName,null,true);
+    }
+
+    public static <T> List<T> queryIndexSortKeyGreaterThan(T obj, String indexName, String filterExpression) {
+        return queryIndexSortKeyGreaterThan(obj, indexName,filterExpression,true);
+    }
+
+    public static <T> List<T> queryIndexSortKeyLessThan(T obj, String indexName, String filterExpression, boolean scanIndexForward) {
+        return queryIndex(indexName, obj, filterExpression, scanIndexForward, k -> QueryConditional.sortLessThan(k));
+    }
+
+    public static <T> List<T> queryIndexSortKeyLessThan(T obj, String indexName) {
+        return queryIndexSortKeyLessThan(obj, indexName,null,true);
+    }
+
+    public static <T> List<T> queryIndexSortKeyLessThan(T obj, String indexName, String filterExpression) {
+        return queryIndexSortKeyLessThan(obj, indexName,filterExpression,true);
+    }
+
+
+    public static <T> List<T> queryIndexSortKeyGreaterThanOrEqualTo(T obj, String indexName, String filterExpression, boolean scanIndexForward) {
+        return queryIndex(indexName, obj, filterExpression, scanIndexForward, k -> QueryConditional.sortGreaterThanOrEqualTo(k));
+    }
+
+    public static <T> List<T> queryIndexSortKeyGreaterThanOrEqualTo(T obj, String indexName) {
+        return queryIndexSortKeyGreaterThanOrEqualTo(obj,indexName,null, true);
+    }
+
+    public static <T> List<T> queryIndexSortKeyGreaterThanOrEqualTo(T obj, String indexName, String filterExpression) {
+        return queryIndexSortKeyGreaterThanOrEqualTo(obj,indexName,filterExpression, true);
+    }
+
+    public static <T> List<T> queryIndexSortKeyLessThanOrEqualTo(T obj, String indexName, String filterExpression, boolean scanIndexForward) {
+        return queryIndex(indexName, obj, filterExpression, scanIndexForward, k -> QueryConditional.sortLessThanOrEqualTo(k));
+    }
+
+    public static <T> List<T> queryIndexSortKeyLessThanOrEqualTo(T obj, String indexName) {
+        return queryIndexSortKeyLessThanOrEqualTo(obj,indexName,null,true);
+    }
+
+    public static <T> List<T> queryIndexSortKeyLessThanOrEqualTo(T obj, String indexName, String filterExpression) {
+        return queryIndexSortKeyLessThanOrEqualTo(obj,indexName,filterExpression,true);
+    }
+
+
 
     private static <T> List<T> queryTable(T obj, String filterExpression, boolean scanIndexForward, Function<Key, QueryConditional> queryFunction) {
 
@@ -88,6 +203,39 @@ public class EHelper {
                 .build();
 
         final PageIterable<T> pageIterable = queryTable.query(queryRequest);
+        pageIterable.stream().forEach(p -> p.items().forEach(item -> result.add(item)));
+        return result;
+    }
+
+    private static <T> List<T> queryIndex(String indexName, T obj, String filterExpression, boolean scanIndexForward, Function<Key, QueryConditional> queryFunction) {
+
+        List<T> result = new ArrayList<>();
+        List<Field> fields = getFieldsInClass(obj);
+        final Field[] declaredFields = getFieldsInClass(obj).toArray(new Field[fields.size()]);
+
+        final List<String> filterExpressionList = getTokenFromExpression(filterExpression);
+
+        // Create a KEY object
+        Key k = getPrimaryKeyForIndex(obj, indexName);
+
+        DynamoDbIndex<T> queryTable = (DynamoDbIndex<T>) getEnhancedClient().table(getDynamoDBTableName(obj), TableSchema.fromClass(obj.getClass())).index(indexName);
+
+        final Map<String, AttributeValue> stringAttributeValueMap = queryTable.tableSchema().itemToMap(obj, filterExpressionList);
+        Map<String, AttributeValue> expressionValueMap = new HashMap<>();
+        stringAttributeValueMap.forEach((s, av) -> expressionValueMap.put(":" + s, av));
+
+
+        Expression expression = Expression.builder()
+                .expression(filterExpression)
+                .expressionValues(expressionValueMap)
+                .build();
+
+        QueryEnhancedRequest queryRequest = QueryEnhancedRequest.builder()
+                .queryConditional(queryFunction.apply(k))
+                .filterExpression(expression)
+                .build();
+
+        final SdkIterable<Page<T>> pageIterable = queryTable.query(queryRequest);
         pageIterable.stream().forEach(p -> p.items().forEach(item -> result.add(item)));
         return result;
     }
@@ -197,6 +345,47 @@ public class EHelper {
                     continue;
                 }
                 if (m.isAnnotationPresent(DynamoDbSortKey.class) && (m.getReturnType() == String.class)) {
+                    keyBuilder.sortValue((String) m.invoke(obj, null));
+                    continue;
+                }
+
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+
+        }
+        return keyBuilder.build();
+    }
+
+
+    private static <T> Key getPrimaryKeyForIndex(T obj, String indexName) {
+        // Create a KEY object
+        Key.Builder keyBuilder = Key.builder();
+        List<Method> methods = getMethodsInClass(obj);
+        final Method[] declaredMethods = methods.toArray(new Method[methods.size()]);
+
+        for (Method m : declaredMethods) {
+            Object value = null;
+            m.setAccessible(true);
+            AttributeValue av = null;
+
+            try {
+
+                if (m.isAnnotationPresent(DynamoDbSecondaryPartitionKey.class) &&   Arrays.asList(m.getAnnotation(DynamoDbSecondaryPartitionKey.class).indexNames()).contains(indexName)  &&  (m.getReturnType() == Integer.class)) {
+                    keyBuilder.partitionValue((Integer) m.invoke(obj, null));
+                    continue;
+                }
+                if (m.isAnnotationPresent(DynamoDbSecondaryPartitionKey.class) && Arrays.asList(m.getAnnotation(DynamoDbSecondaryPartitionKey.class).indexNames()).contains(indexName)  &&  (m.getReturnType() == String.class)) {
+                    keyBuilder.partitionValue((String) m.invoke(obj, null));
+                    continue;
+                }
+                if (m.isAnnotationPresent(DynamoDbSecondarySortKey.class) && Arrays.asList(m.getAnnotation(DynamoDbSecondarySortKey.class).indexNames()).contains(indexName)  && (m.getReturnType() == Integer.class)) {
+                    keyBuilder.sortValue((Integer) m.invoke(obj, null));
+                    continue;
+                }
+                if (m.isAnnotationPresent(DynamoDbSecondarySortKey.class) && Arrays.asList(m.getAnnotation(DynamoDbSecondarySortKey.class).indexNames()).contains(indexName)  && (m.getReturnType() == String.class)) {
                     keyBuilder.sortValue((String) m.invoke(obj, null));
                     continue;
                 }
