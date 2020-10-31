@@ -2,13 +2,18 @@ package com.ppe.db.helper;
 
 import software.amazon.awssdk.enhanced.dynamodb.*;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 import software.amazon.awssdk.enhanced.dynamodb.model.*;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 
+import java.beans.Introspector;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Function;
 
@@ -140,6 +145,16 @@ public class EHelper {
         return fields;
     }
 
+    private static <T> List<Method> getMethodsInClass(T t) {
+        List<Method> methods = new ArrayList<>();
+        Class clazz = t.getClass();
+        while (clazz != Object.class) {
+            methods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+            clazz = clazz.getSuperclass();
+        }
+        return methods;
+    }
+
     private static List<String> getTokenFromExpression(String conditionExpression) {
         StringBuffer buf = new StringBuffer();
         List<String> l = new ArrayList<>();
@@ -155,42 +170,43 @@ public class EHelper {
     }
 
 
+
     private static <T> Key getPrimaryKeyForTable(T obj) {
         // Create a KEY object
         Key.Builder keyBuilder = Key.builder();
-        List<Field> fields = getFieldsInClass(obj);
-        final Field[] declaredFields = getFieldsInClass(obj).toArray(new Field[fields.size()]);
+        List<Method> methods = getMethodsInClass(obj);
+        final Method[] declaredMethods = methods.toArray(new Method[methods.size()]);
 
-        for (Field f : declaredFields) {
+        for (Method m : declaredMethods) {
             Object value = null;
+            m.setAccessible(true);
+            AttributeValue av = null;
+
             try {
-                f.setAccessible(true);
-                value = f.get(obj);
-                AttributeValue av = null;
 
-                if (null != value) {
-
-                    if (f.isAnnotationPresent(PartitionKey.class) && (f.getType() == Integer.class)) {
-                        keyBuilder.partitionValue((Integer) value);
-                        continue;
-                    }
-                    if (f.isAnnotationPresent(PartitionKey.class) && (f.getType() == String.class)) {
-                        keyBuilder.partitionValue((String) value);
-                        continue;
-                    }
-                    if (f.isAnnotationPresent(SortKey.class) && (f.getType() == Integer.class)) {
-                        keyBuilder.sortValue((Integer) value);
-                        continue;
-                    }
-                    if (f.isAnnotationPresent(SortKey.class) && (f.getType() == String.class)) {
-                        keyBuilder.sortValue((String) value);
-                        continue;
-                    }
-
+                if (m.isAnnotationPresent(DynamoDbPartitionKey.class) && (m.getReturnType() == Integer.class)) {
+                    keyBuilder.partitionValue((Integer) m.invoke(obj, null));
+                    continue;
                 }
+                if (m.isAnnotationPresent(DynamoDbPartitionKey.class) && (m.getReturnType() == String.class)) {
+                    keyBuilder.partitionValue((String) m.invoke(obj, null));
+                    continue;
+                }
+                if (m.isAnnotationPresent(DynamoDbSortKey.class) && (m.getReturnType() == Integer.class)) {
+                    keyBuilder.sortValue((Integer) m.invoke(obj, null));
+                    continue;
+                }
+                if (m.isAnnotationPresent(DynamoDbSortKey.class) && (m.getReturnType() == String.class)) {
+                    keyBuilder.sortValue((String) m.invoke(obj, null));
+                    continue;
+                }
+
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
             }
+
         }
         return keyBuilder.build();
     }
@@ -258,36 +274,33 @@ public class EHelper {
 
     private static <T> String primaryKeyCheckExpression(T obj, boolean primaryKeyCheck, boolean versionCheck) {
         String keyExpression = "";
-        List<Field> fields = getFieldsInClass(obj);
-        final Field[] declaredFields = getFieldsInClass(obj).toArray(new Field[fields.size()]);
+
+        List<Method> methods = getMethodsInClass(obj);
+        final Method[] declaredMethods = methods.toArray(new Method[methods.size()]);
+
+        for (Method m : declaredMethods) {
+            m.setAccessible(true);
+            software.amazon.awssdk.services.dynamodb.model.AttributeValue av = null;
 
 
-        for (Field f : declaredFields) {
-            Object value = null;
-            try {
-                f.setAccessible(true);
-                value = f.get(obj);
-                software.amazon.awssdk.services.dynamodb.model.AttributeValue av = null;
+            if (m.isAnnotationPresent(DynamoDbPartitionKey.class)) {
 
-                if (null != value) {
-
-                    if (f.isAnnotationPresent(PartitionKey.class)) {
-
-                        if (!keyExpression.equalsIgnoreCase("")) keyExpression += " AND ";
-                        if (primaryKeyCheck) keyExpression += f.getName() + " <> :" + f.getName() + " ";
-                        continue;
-                    }
-
-                    if (f.isAnnotationPresent(SortKey.class)) {
-                        if (!keyExpression.equalsIgnoreCase("")) keyExpression += " AND ";
-                        if (primaryKeyCheck) keyExpression += f.getName() + " <> :" + f.getName() + " ";
-                        continue;
-                    }
-                }
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
+                if (!keyExpression.equalsIgnoreCase("")) keyExpression += " AND ";
+                // " PK <> :PK
+                String partitionKey = Introspector.decapitalize(m.getName().substring(m.getName().startsWith("get")? 3 : 2));
+                if (primaryKeyCheck) keyExpression += partitionKey + " <> :" + partitionKey + " ";
+                continue;
             }
-        }
+
+            if (m.isAnnotationPresent(DynamoDbSortKey.class)) {
+
+                if (!keyExpression.equalsIgnoreCase("")) keyExpression += " AND ";
+
+                String sortKey = Introspector.decapitalize(m.getName().substring(m.getName().startsWith("get")? 3 : 2));
+                if (primaryKeyCheck) keyExpression += sortKey + " <> :" + sortKey + " ";
+                continue;
+            }
+         }
 
         return keyExpression.equalsIgnoreCase("") ? null : keyExpression;
     }
@@ -327,4 +340,6 @@ public class EHelper {
     public static void executeTransactionWrite(TxnPacket tp) {
             getEnhancedClient().transactWriteItems(tp.builder.build());
     }
+
+
 }
