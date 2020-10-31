@@ -520,6 +520,11 @@ public class EHelper {
                 return this;
             }
 
+            public <T> TxnPacketBuilder update(T updateObject, Class<T> clazz) {
+                updateRequest(tp.builder, updateObject, clazz, null);
+                return this;
+            }
+
             public TxnPacket build() {
                 return tp;
             }
