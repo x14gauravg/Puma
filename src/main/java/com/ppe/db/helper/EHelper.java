@@ -341,11 +341,13 @@ public class EHelper {
                     continue;
                 }
                 if (m.isAnnotationPresent(DynamoDbSortKey.class) && (m.getReturnType() == Integer.class)) {
-                    keyBuilder.sortValue((Integer) m.invoke(obj, null));
+                    Integer val = (Integer) m.invoke(obj, null);
+                    if(val != null)  { keyBuilder.sortValue((Integer) m.invoke(obj, null)); }
                     continue;
                 }
                 if (m.isAnnotationPresent(DynamoDbSortKey.class) && (m.getReturnType() == String.class)) {
-                    keyBuilder.sortValue((String) m.invoke(obj, null));
+                    String val = (String) m.invoke(obj, null);
+                    if(val != null)  { keyBuilder.sortValue((String) m.invoke(obj, null)); }
                     continue;
                 }
 
@@ -382,11 +384,13 @@ public class EHelper {
                     continue;
                 }
                 if (m.isAnnotationPresent(DynamoDbSecondarySortKey.class) && Arrays.asList(m.getAnnotation(DynamoDbSecondarySortKey.class).indexNames()).contains(indexName)  && (m.getReturnType() == Integer.class)) {
-                    keyBuilder.sortValue((Integer) m.invoke(obj, null));
+                    Integer val = (Integer) m.invoke(obj, null);
+                    if(val != null)  { keyBuilder.sortValue((Integer) m.invoke(obj, null)); }
                     continue;
                 }
                 if (m.isAnnotationPresent(DynamoDbSecondarySortKey.class) && Arrays.asList(m.getAnnotation(DynamoDbSecondarySortKey.class).indexNames()).contains(indexName)  && (m.getReturnType() == String.class)) {
-                    keyBuilder.sortValue((String) m.invoke(obj, null));
+                    String val = (String) m.invoke(obj, null);
+                    if(val != null)  { keyBuilder.sortValue((String) m.invoke(obj, null)); }
                     continue;
                 }
 

@@ -17,13 +17,15 @@ public class TestDynamo {
         mc1.setFakePicture(pix);
 
 
+
+
         FakeCustomer mc2 = new FakeCustomer();
         mc2.setPARTITION_KEY("LLL");
         mc2.setSORT_KEY("1");
         mc2.setFees(100);
         mc2.setFakePicture(pix);
 
-        
+
 
         EHelper.TxnPacket packet = EHelper.TxnPacket.builder()
                 .update(mc1, FakeCustomer.class, null )
